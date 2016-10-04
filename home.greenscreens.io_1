@@ -1,0 +1,65 @@
+
+limit_req_zone $binary_remote_addr zone=one:10m rate=1r/s;
+#proxy_cache_path /var/cache/nginx/cache levels=1:2 keys_zone=cache-space:240m max_size=4096m inactive=1h;
+#proxy_temp_path /var/cache/nginx/tmp;
+
+
+upstream wildfly {
+    ip_hash;
+    # here multiple servers running GreenScreen Terminal Service can be added
+    server 127.0.0.1:8080;
+}
+
+# HTTP server
+#
+server {
+
+	listen 80 default_server;
+	listen [::]:80 default_server;
+	server_name localhost;
+
+	# UNCOMMENT TO ENAABLE UNPROTECTED ACCESS
+	# include home.greenscreens.io_2;
+
+        # COMMENT TO DISABLE SSL-ONLY REDIRECTION
+        return 301 https://$server_name$request_uri;
+}
+
+
+# HTTPS server
+#
+server {
+
+    listen                        443 ssl;
+    server_name                   localhost;
+    keepalive_timeout             70;
+
+    #add_header                   Strict-Transport-Security  "max-age=15768000; includeSubdomains;";
+    add_header                    X-Frame-Options DENY;
+    add_header                    X-Content-Security-Policy "default-src 'self';
+    script-src                    'self' https://ssl.google-analytics.com;
+    img-src                       'self' https://ssl.google-analytics.com";
+
+    ssl_certificate               certificate/server_cer.pem;  # public part of server certificate
+    ssl_certificate_key           certificate/server_key.pem;   # provate part of server certificate
+
+    #ssl_trusted_certificate       certificate/ca_cer.cer;  # certificate used to sign server certificate
+    ssl_client_certificate        certificate/ca_cer.cer;  # signer of client certificate
+
+    # set to on to enable client side certificate access controll
+    ssl_verify_client             on; # optional;
+    ssl_verify_depth              2;
+    ssl_session_timeout           5m;
+    ssl_prefer_server_ciphers     on;
+    ssl_protocols                 TLSv1 TLSv1.1 TLSv1.2;
+    ssl_ciphers                   'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:ECDHE-RSA-DES-CBC3-SHA:ECDHE-ECDSA-DES-CBC3-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA';
+
+
+    #ssl_ciphers                  ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AES:RSA+3DES:!ADH:!AECDH:!MD5:!DSS;
+    #ssl_ciphers                   "HIGH:!aNULL:!MD5 or HIGH:!aNULL:!MD5:!3DES";
+
+
+    include home.greenscreens.io_2;
+
+}
+
