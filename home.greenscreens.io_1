@@ -4,7 +4,7 @@ limit_req_zone $binary_remote_addr zone=one:10m rate=1r/s;
 #proxy_temp_path /var/cache/nginx/tmp;
 
 
-upstream wildfly {
+upstream gsserver {
     ip_hash;
     # here multiple servers running GreenScreen Terminal Service can be added
     server 127.0.0.1:8080;
